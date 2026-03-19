@@ -1,0 +1,391 @@
+# ISO/IEC 42001:2023 Annex A — Full Control Mapping to OCI Services
+# Each control has: automatable checks, OCI services, and manual evidence needed
+
+annex_a:
+  A.2:
+    title: "Policies for AI"
+    controls:
+      A.2.2:
+        title: "AI Policy"
+        description: "Organization shall establish, implement and maintain an AI policy"
+        checks:
+          - id: "A2.2-01"
+            title: "IAM policies exist for AI service families"
+            automatable: true
+            oci_service: "IAM"
+            severity: "high"
+          - id: "A2.2-02"
+            title: "AI governance tag namespace exists"
+            automatable: true
+            oci_service: "Tagging"
+            severity: "medium"
+      A.2.3:
+        title: "AI Acceptable Use"
+        description: "Rules for acceptable use of AI systems shall be defined"
+        checks:
+          - id: "A2.3-01"
+            title: "AI compartment has defined-tags for acceptable-use classification"
+            automatable: true
+            oci_service: "Tagging"
+            severity: "medium"
+      A.2.4:
+        title: "Ethical AI Principles"
+        description: "Ethical principles for AI shall be documented"
+        checks:
+          - id: "A2.4-01"
+            title: "Evidence: ethical AI policy document exists (manual check)"
+            automatable: false
+            severity: "high"
+
+  A.3:
+    title: "Internal Organization"
+    controls:
+      A.3.2:
+        title: "Roles and Responsibilities"
+        description: "AI roles and responsibilities shall be defined"
+        checks:
+          - id: "A3.2-01"
+            title: "Dedicated AI administrator group exists in IAM"
+            automatable: true
+            oci_service: "IAM"
+            severity: "high"
+          - id: "A3.2-02"
+            title: "AI group has scoped policies (not manage all-resources)"
+            automatable: true
+            oci_service: "IAM"
+            severity: "high"
+
+  A.4:
+    title: "Resources for AI Systems"
+    controls:
+      A.4.3:
+        title: "Data Resources"
+        description: "Data resources for AI shall be identified and managed"
+        checks:
+          - id: "A4.3-01"
+            title: "Data Labeling Service datasets exist"
+            automatable: true
+            oci_service: "Data Labeling"
+            severity: "medium"
+          - id: "A4.3-02"
+            title: "Object Storage buckets tagged as AI training data"
+            automatable: true
+            oci_service: "Object Storage"
+            severity: "medium"
+      A.4.4:
+        title: "System Inventory"
+        description: "AI systems shall be inventoried"
+        checks:
+          - id: "A4.4-01"
+            title: "Data Science projects exist and are tagged"
+            automatable: true
+            oci_service: "Data Science"
+            severity: "high"
+          - id: "A4.4-02"
+            title: "GenAI models/endpoints inventoried"
+            automatable: true
+            oci_service: "Generative AI"
+            severity: "high"
+          - id: "A4.4-03"
+            title: "AI Vision projects inventoried"
+            automatable: true
+            oci_service: "AI Vision"
+            severity: "medium"
+          - id: "A4.4-04"
+            title: "AI Language projects inventoried"
+            automatable: true
+            oci_service: "AI Language"
+            severity: "medium"
+          - id: "A4.4-05"
+            title: "AI Speech projects inventoried"
+            automatable: true
+            oci_service: "AI Speech"
+            severity: "medium"
+          - id: "A4.4-06"
+            title: "AI Anomaly Detection projects inventoried"
+            automatable: true
+            oci_service: "AI Anomaly Detection"
+            severity: "medium"
+          - id: "A4.4-07"
+            title: "AI Document Understanding projects inventoried"
+            automatable: true
+            oci_service: "AI Document"
+            severity: "medium"
+      A.4.5:
+        title: "Computing Infrastructure"
+        description: "Computing infrastructure for AI shall be adequate and secure"
+        checks:
+          - id: "A4.5-01"
+            title: "Data Science notebook sessions in private subnets"
+            automatable: true
+            oci_service: "Data Science"
+            severity: "high"
+          - id: "A4.5-02"
+            title: "GPU compute shapes used for AI workloads"
+            automatable: true
+            oci_service: "Compute"
+            severity: "low"
+          - id: "A4.5-03"
+            title: "GenAI dedicated AI clusters provisioned"
+            automatable: true
+            oci_service: "Generative AI"
+            severity: "medium"
+
+  A.5:
+    title: "Assessing Impacts of AI Systems"
+    controls:
+      A.5.2:
+        title: "AI Impact Assessment"
+        description: "Impact assessment process for AI systems"
+        checks:
+          - id: "A5.2-01"
+            title: "Cloud Guard enabled (security impact monitoring)"
+            automatable: true
+            oci_service: "Cloud Guard"
+            severity: "high"
+          - id: "A5.2-02"
+            title: "Cloud Guard targets cover AI compartments"
+            automatable: true
+            oci_service: "Cloud Guard"
+            severity: "medium"
+
+  A.6:
+    title: "AI System Lifecycle"
+    controls:
+      A.6.2:
+        title: "Lifecycle Management"
+        description: "AI system lifecycle shall be managed"
+        checks:
+          - id: "A6.2-01"
+            title: "Resource Manager stacks exist for AI infrastructure (IaC)"
+            automatable: true
+            oci_service: "Resource Manager"
+            severity: "medium"
+      A.6.5:
+        title: "Data Management"
+        description: "Data acquisition, quality, and provenance"
+        checks:
+          - id: "A6.5-01"
+            title: "Training data buckets have versioning enabled"
+            automatable: true
+            oci_service: "Object Storage"
+            severity: "high"
+          - id: "A6.5-02"
+            title: "Training data encrypted with customer-managed keys"
+            automatable: true
+            oci_service: "Object Storage / KMS"
+            severity: "high"
+      A.6.6:
+        title: "Model Development"
+        description: "Model development practices"
+        checks:
+          - id: "A6.6-01"
+            title: "ML models in catalog have metadata/description"
+            automatable: true
+            oci_service: "Data Science"
+            severity: "high"
+          - id: "A6.6-02"
+            title: "Model deployments have logging configured"
+            automatable: true
+            oci_service: "Data Science"
+            severity: "high"
+          - id: "A6.6-03"
+            title: "GenAI fine-tuned models documented"
+            automatable: true
+            oci_service: "Generative AI"
+            severity: "medium"
+      A.6.7:
+        title: "Verification and Validation"
+        description: "AI systems shall be tested before deployment"
+        checks:
+          - id: "A6.7-01"
+            title: "Data Science model version history exists"
+            automatable: true
+            oci_service: "Data Science"
+            severity: "medium"
+
+  A.7:
+    title: "Data for AI Systems"
+    controls:
+      A.7.2:
+        title: "Data Governance"
+        description: "Data governance framework for AI"
+        checks:
+          - id: "A7.2-01"
+            title: "Data Safe enabled for databases"
+            automatable: true
+            oci_service: "Data Safe"
+            severity: "high"
+          - id: "A7.2-02"
+            title: "Data Safe user assessments performed"
+            automatable: true
+            oci_service: "Data Safe"
+            severity: "medium"
+          - id: "A7.2-03"
+            title: "Data Safe security assessments performed"
+            automatable: true
+            oci_service: "Data Safe"
+            severity: "medium"
+      A.7.3:
+        title: "Data Quality"
+        description: "Data quality shall be monitored"
+        checks:
+          - id: "A7.3-01"
+            title: "Data Labeling datasets have annotations"
+            automatable: true
+            oci_service: "Data Labeling"
+            severity: "medium"
+      A.7.5:
+        title: "Data Protection"
+        description: "AI data shall be protected"
+        checks:
+          - id: "A7.5-01"
+            title: "KMS Vault exists for AI data encryption"
+            automatable: true
+            oci_service: "KMS"
+            severity: "high"
+          - id: "A7.5-02"
+            title: "Database encryption uses customer-managed keys"
+            automatable: true
+            oci_service: "Database / KMS"
+            severity: "high"
+          - id: "A7.5-03"
+            title: "Data masking policies configured in Data Safe"
+            automatable: true
+            oci_service: "Data Safe"
+            severity: "medium"
+
+  A.8:
+    title: "Information for Interested Parties"
+    controls:
+      A.8.2:
+        title: "AI Transparency"
+        description: "Stakeholders shall be informed about AI use"
+        checks:
+          - id: "A8.2-01"
+            title: "AI services have descriptive tags/metadata"
+            automatable: true
+            oci_service: "Tagging"
+            severity: "medium"
+      A.8.4:
+        title: "Logging of AI Decisions"
+        description: "AI system decisions shall be logged"
+        checks:
+          - id: "A8.4-01"
+            title: "Logging service enabled with log groups"
+            automatable: true
+            oci_service: "Logging"
+            severity: "high"
+          - id: "A8.4-02"
+            title: "Service logs for AI services (Data Science, GenAI)"
+            automatable: true
+            oci_service: "Logging"
+            severity: "high"
+          - id: "A8.4-03"
+            title: "Log Analytics namespace configured"
+            automatable: true
+            oci_service: "Log Analytics"
+            severity: "medium"
+          - id: "A8.4-04"
+            title: "Audit log captures AI service events"
+            automatable: true
+            oci_service: "Audit"
+            severity: "high"
+
+  A.9:
+    title: "Use of AI Systems"
+    controls:
+      A.9.2:
+        title: "Intended Use"
+        description: "AI systems used only for intended purposes"
+        checks:
+          - id: "A9.2-01"
+            title: "AI compartments have purpose/classification tags"
+            automatable: true
+            oci_service: "Tagging"
+            severity: "medium"
+      A.9.3:
+        title: "Human Oversight"
+        description: "Human oversight of AI systems"
+        checks:
+          - id: "A9.3-01"
+            title: "IAM policies restrict AI service access to specific groups"
+            automatable: true
+            oci_service: "IAM"
+            severity: "high"
+          - id: "A9.3-02"
+            title: "MFA enforced for AI administrators"
+            automatable: true
+            oci_service: "IAM"
+            severity: "high"
+          - id: "A9.3-03"
+            title: "Strong authentication policy (password length >= 14)"
+            automatable: true
+            oci_service: "IAM"
+            severity: "medium"
+          - id: "A9.3-04"
+            title: "Bastion service available for secure AI access"
+            automatable: true
+            oci_service: "Bastion"
+            severity: "medium"
+      A.9.4:
+        title: "Operational Monitoring"
+        description: "AI systems shall be monitored"
+        checks:
+          - id: "A9.4-01"
+            title: "Monitoring alarms for AI services"
+            automatable: true
+            oci_service: "Monitoring"
+            severity: "high"
+          - id: "A9.4-02"
+            title: "APM domain exists for AI application tracing"
+            automatable: true
+            oci_service: "APM"
+            severity: "medium"
+          - id: "A9.4-03"
+            title: "Notifications topic for AI service events"
+            automatable: true
+            oci_service: "Notifications"
+            severity: "medium"
+          - id: "A9.4-04"
+            title: "Events rules for AI service state changes"
+            automatable: true
+            oci_service: "Events"
+            severity: "medium"
+          - id: "A9.4-05"
+            title: "Audit retention >= 365 days"
+            automatable: true
+            oci_service: "Audit"
+            severity: "high"
+
+  A.10:
+    title: "Third-Party and Customer Relationships"
+    controls:
+      A.10.2:
+        title: "AI Supply Chain"
+        description: "Third-party AI systems shall be governed"
+        checks:
+          - id: "A10.2-01"
+            title: "Only approved GenAI base models in use"
+            automatable: true
+            oci_service: "Generative AI"
+            severity: "high"
+          - id: "A10.2-02"
+            title: "Container images for AI from trusted OCIR only"
+            automatable: true
+            oci_service: "OCIR"
+            severity: "medium"
+      A.10.3:
+        title: "Network Controls for Third-Party AI"
+        description: "Network controls for external AI integrations"
+        checks:
+          - id: "A10.3-01"
+            title: "AI endpoints not on public subnets"
+            automatable: true
+            oci_service: "Networking"
+            severity: "high"
+          - id: "A10.3-02"
+            title: "Service Gateway exists for AI service traffic"
+            automatable: true
+            oci_service: "Networking"
+            severity: "medium"
