@@ -25,6 +25,10 @@ variableGroups:
       - subnet_cidr
       - existing_subnet_ocid
 
+  - title: "IAM Configuration"
+    variables:
+      - create_iam
+
   - title: "Scanner Configuration"
     variables:
       - scanner_port
@@ -112,6 +116,12 @@ variables:
         - false
     dependsOn:
       compartmentId: compartment_ocid
+
+  create_iam:
+    title: "Create IAM Resources"
+    description: "Create dynamic group and policy for instance principal auth. Set to false if pre-existing IAM covers this instance."
+    type: boolean
+    default: true
 
   scanner_port:
     title: "Scanner API Port"

@@ -85,6 +85,12 @@ variable "scan_time_utc" {
   default = "02:00"
 }
 
+variable "create_iam" {
+  type        = bool
+  default     = true
+  description = "Create dynamic group and IAM policy. Set to false if pre-existing IAM resources cover this instance."
+}
+
 # Source repo
 
 variable "repo_url" {
@@ -189,6 +195,7 @@ locals {
 # ── IAM: Dynamic Group + Policy for Instance Principal ──
 
 resource "oci_identity_dynamic_group" "scanner_dg" {
+  count          = var.create_iam ? 1 : 0
   compartment_id = var.tenancy_ocid
   name           = "iso42001-scanner-instances"
   description    = "Dynamic group for ISO 42001 compliance scanner instances"
@@ -196,15 +203,16 @@ resource "oci_identity_dynamic_group" "scanner_dg" {
 }
 
 resource "oci_identity_policy" "scanner_policy" {
+  count          = var.create_iam ? 1 : 0
   compartment_id = var.tenancy_ocid
   name           = "iso42001-scanner-policy"
   description    = "Allow ISO 42001 scanner to read tenancy resources for compliance checks"
   statements = [
-    "Allow dynamic-group ${oci_identity_dynamic_group.scanner_dg.name} to inspect all-resources in tenancy",
-    "Allow dynamic-group ${oci_identity_dynamic_group.scanner_dg.name} to read all-resources in tenancy",
-    "Allow dynamic-group ${oci_identity_dynamic_group.scanner_dg.name} to use cloud-guard-config in tenancy",
-    "Allow dynamic-group ${oci_identity_dynamic_group.scanner_dg.name} to read data-safe-family in tenancy",
-    "Allow dynamic-group ${oci_identity_dynamic_group.scanner_dg.name} to read ai-service-family in tenancy",
+    "Allow dynamic-group ${oci_identity_dynamic_group.scanner_dg[0].name} to inspect all-resources in tenancy",
+    "Allow dynamic-group ${oci_identity_dynamic_group.scanner_dg[0].name} to read all-resources in tenancy",
+    "Allow dynamic-group ${oci_identity_dynamic_group.scanner_dg[0].name} to use cloud-guard-config in tenancy",
+    "Allow dynamic-group ${oci_identity_dynamic_group.scanner_dg[0].name} to read data-safe-family in tenancy",
+    "Allow dynamic-group ${oci_identity_dynamic_group.scanner_dg[0].name} to read ai-service-family in tenancy",
   ]
 }
 
@@ -271,7 +279,7 @@ output "scanner_health_check" {
 }
 
 output "dynamic_group_ocid" {
-  value = oci_identity_dynamic_group.scanner_dg.id
+  value = var.create_iam ? oci_identity_dynamic_group.scanner_dg[0].id : "pre-existing"
 }
 
 output "instance_ocid" {
