@@ -996,7 +996,7 @@ class ISO42001Scanner:
                 if isinstance(lg_logs, list):
                     logs.extend(lg_logs)
         ai_logs = [l for l in logs
-                   if any(kw in (l.get("configuration", {}).get("source", {}).get("service", "")).lower()
+                   if any(kw in ((l.get("configuration") or {}).get("source") or {}).get("service", "").lower()
                           for kw in ["datascience", "generativeai", "ai"])]
         self.add("A8.4-02", "Service logs configured for AI services",
                  "A.8 Transparency", len(ai_logs) > 0,

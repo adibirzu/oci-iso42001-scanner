@@ -4,7 +4,7 @@
 # Runs on first boot of OCI compute instance
 # Fully autonomous — no human intervention required
 # ═══════════════════════════════════════════════════════════════
-set -euo pipefail
+set -uo pipefail
 exec > >(tee /var/log/iso42001-cloud-init.log) 2>&1
 
 INSTALL_DIR="/home/opc/iso42001-scanner"
@@ -21,8 +21,8 @@ echo "[cloud-init] ISO 42001 Scanner setup starting at $(date -u)"
 echo "[cloud-init] Step 1/7: Installing prerequisites..."
 dnf install -y python39 python39-pip git 2>/dev/null || yum install -y python39 python39-pip git 2>/dev/null || true
 
-# Ensure python3 points to python3.9 if available
-if command -v python3.9 &>/dev/null && ! command -v python3 &>/dev/null; then
+# Set python3.9 as default (OL8 defaults to 3.6 which lacks modern type hints)
+if command -v python3.9 &>/dev/null; then
     alternatives --set python3 /usr/bin/python3.9 2>/dev/null || true
 fi
 
@@ -72,7 +72,7 @@ Wants=network-online.target
 Type=simple
 User=opc
 WorkingDirectory=$INSTALL_DIR
-ExecStart=/home/opc/.local/bin/python3 server.py \\
+ExecStart=/usr/bin/python3 server.py \\
     --auth instance_principal \\
     --tenancy $TENANCY_OCID \\
     --port $SCANNER_PORT \\
