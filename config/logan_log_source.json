@@ -1,0 +1,86 @@
+{
+  "logSources": [
+    {
+      "name": "ISO 42001 Compliance Scanner",
+      "description": "OCI ISO/IEC 42001:2023 AI Management System compliance scan results. Product-neutral scoring: requirements affect score, recommendations are informational with alternatives.",
+      "typeName": "FILE",
+      "entityType": "OCI Compliance Scanner",
+      "patterns": [
+        {
+          "name": "ISO42001_CHECK",
+          "description": "Individual compliance check result",
+          "regularExpression": "(?<check_id>[A-Z0-9.-]+)\\s+(?<section>[^|]+)\\|\\s*(?<clause_type>\\w+)\\s*\\|\\s*(?<check_type>\\w+)\\s*\\|\\s*(?<severity>\\w+)\\s*\\|\\s*(?<compliant>Yes|No)\\s*\\|\\s*(?<title>[^|]+)\\|\\s*(?<oci_service>[^|]*)\\|\\s*(?<detail>.*)",
+          "fieldMap": {
+            "check_id": { "name": "Check ID", "type": "STRING" },
+            "section": { "name": "Section", "type": "STRING" },
+            "clause_type": { "name": "Clause Type", "type": "STRING" },
+            "check_type": { "name": "Check Type", "type": "STRING" },
+            "severity": { "name": "Severity", "type": "STRING" },
+            "compliant": { "name": "Compliant", "type": "STRING" },
+            "title": { "name": "Title", "type": "STRING" },
+            "oci_service": { "name": "OCI Service", "type": "STRING" },
+            "detail": { "name": "Detail", "type": "STRING" }
+          }
+        }
+      ],
+      "fieldDefinitions": [
+        { "name": "Score", "type": "NUMERIC", "description": "Overall compliance score (requirements only)" },
+        { "name": "EU AI Act Ref", "type": "STRING", "description": "EU AI Act article reference" },
+        { "name": "NIST AI RMF Ref", "type": "STRING", "description": "NIST AI RMF subcategory reference" },
+        { "name": "Rationale", "type": "STRING", "description": "Why this service/control helps compliance" },
+        { "name": "Alternatives", "type": "STRING", "description": "Non-OCI alternative products" },
+        { "name": "Check Type", "type": "STRING", "description": "requirement (scored) or recommendation (not scored)" }
+      ]
+    },
+    {
+      "name": "ISO 42001 Roadmap",
+      "description": "Certification roadmap step progress",
+      "typeName": "FILE",
+      "entityType": "OCI Compliance Scanner",
+      "fieldDefinitions": [
+        { "name": "Step", "type": "NUMERIC" },
+        { "name": "Phase", "type": "STRING" },
+        { "name": "Step Name", "type": "STRING" },
+        { "name": "Readiness Pct", "type": "NUMERIC" }
+      ]
+    },
+    {
+      "name": "ISO 42001 Gap Analysis",
+      "description": "Gap analysis domain results",
+      "typeName": "FILE",
+      "entityType": "OCI Compliance Scanner",
+      "fieldDefinitions": [
+        { "name": "Domain", "type": "STRING" },
+        { "name": "Domain Name", "type": "STRING" },
+        { "name": "Gaps Open", "type": "NUMERIC" },
+        { "name": "Gaps Closed", "type": "NUMERIC" },
+        { "name": "Manual Items", "type": "NUMERIC" },
+        { "name": "Readiness Pct", "type": "NUMERIC" }
+      ]
+    },
+    {
+      "name": "ISO 42001 Evidence",
+      "description": "Evidence register entries (automated + manual)",
+      "typeName": "FILE",
+      "entityType": "OCI Compliance Scanner",
+      "fieldDefinitions": [
+        { "name": "Control ID", "type": "STRING" },
+        { "name": "Evidence Type", "type": "STRING" },
+        { "name": "Status", "type": "STRING" },
+        { "name": "Owner", "type": "STRING" }
+      ]
+    },
+    {
+      "name": "ISO 42001 EU AI Act",
+      "description": "EU AI Act enforcement timeline and readiness",
+      "typeName": "FILE",
+      "entityType": "OCI Compliance Scanner",
+      "fieldDefinitions": [
+        { "name": "Date", "type": "STRING" },
+        { "name": "Event", "type": "STRING" },
+        { "name": "Status", "type": "STRING" },
+        { "name": "Days Until", "type": "NUMERIC" }
+      ]
+    }
+  ]
+}

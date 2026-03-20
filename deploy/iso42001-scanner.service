@@ -1,0 +1,19 @@
+[Unit]
+Description=OCI ISO 42001 AI Compliance Scanner API
+After=network.target
+
+[Service]
+Type=simple
+User=opc
+WorkingDirectory=/home/opc/iso42001-scanner
+ExecStart=/home/opc/.local/bin/python3 server.py \
+    --auth instance_principal \
+    --tenancy TENANCY_OCID_PLACEHOLDER \
+    --port 8080 \
+    --scan-on-start
+Restart=always
+RestartSec=10
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

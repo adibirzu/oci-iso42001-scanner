@@ -1,0 +1,3 @@
+# OCI ISO/IEC 42001:2023 AI Compliance Scanner
+oci-cli>=3.40.0
+httpx>=0.24.0

@@ -1,0 +1,144 @@
+title: "ISO 42001 AI Compliance Scanner"
+description: "Deploy the OCI ISO/IEC 42001:2023 AI Management System Compliance Scanner. Fully autonomous — scans start automatically on boot with Instance Principal authentication."
+schemaVersion: 1.1.0
+version: "2.1.0"
+locale: "en"
+
+variableGroups:
+  - title: "General Configuration"
+    variables:
+      - compartment_ocid
+      - tenancy_ocid
+      - region
+
+  - title: "Compute Configuration"
+    variables:
+      - instance_shape
+      - instance_ocpus
+      - instance_memory_gb
+      - ssh_public_key
+
+  - title: "Network Configuration"
+    variables:
+      - create_vcn
+      - vcn_cidr
+      - subnet_cidr
+      - existing_subnet_ocid
+
+  - title: "Scanner Configuration"
+    variables:
+      - scanner_port
+      - enable_daily_scan
+      - scan_time_utc
+      - repo_url
+      - repo_branch
+
+variables:
+  compartment_ocid:
+    title: "Compartment"
+    type: oci:identity:compartment:id
+    required: true
+
+  tenancy_ocid:
+    title: "Tenancy OCID"
+    type: string
+    required: true
+
+  region:
+    title: "Region"
+    type: oci:identity:region:name
+    required: true
+
+  instance_shape:
+    title: "Compute Shape"
+    type: enum
+    default: "VM.Standard.E4.Flex"
+    enum:
+      - "VM.Standard.E4.Flex"
+      - "VM.Standard.E3.Flex"
+      - "VM.Standard.A1.Flex"
+
+  instance_ocpus:
+    title: "OCPUs"
+    type: integer
+    default: 1
+    minimum: 1
+    maximum: 4
+
+  instance_memory_gb:
+    title: "Memory (GB)"
+    type: integer
+    default: 8
+    minimum: 4
+    maximum: 32
+
+  ssh_public_key:
+    title: "SSH Public Key"
+    type: oci:core:ssh:publickey
+    required: true
+
+  create_vcn:
+    title: "Create New VCN"
+    description: "Set to false to use an existing subnet instead"
+    type: boolean
+    default: true
+
+  vcn_cidr:
+    title: "VCN CIDR Block"
+    type: string
+    default: "10.42.0.0/16"
+    visible:
+      eq:
+        - create_vcn
+        - true
+
+  subnet_cidr:
+    title: "Subnet CIDR Block"
+    type: string
+    default: "10.42.1.0/24"
+    visible:
+      eq:
+        - create_vcn
+        - true
+
+  existing_subnet_ocid:
+    title: "Existing Subnet OCID"
+    description: "OCID of an existing public subnet with internet access"
+    type: oci:core:subnet:id
+    required: false
+    visible:
+      eq:
+        - create_vcn
+        - false
+    dependsOn:
+      compartmentId: compartment_ocid
+
+  scanner_port:
+    title: "Scanner API Port"
+    type: integer
+    default: 8080
+
+  enable_daily_scan:
+    title: "Enable Daily Automated Scan"
+    type: boolean
+    default: true
+
+  scan_time_utc:
+    title: "Daily Scan Time (UTC, HH:MM)"
+    type: string
+    default: "02:00"
+    visible:
+      eq:
+        - enable_daily_scan
+        - true
+
+  repo_url:
+    title: "Scanner Repository URL"
+    description: "Git repository URL for the ISO 42001 scanner source code"
+    type: string
+    default: "https://github.com/adibirzu/oci-iso42001-scanner.git"
+
+  repo_branch:
+    title: "Repository Branch"
+    type: string
+    default: "main"

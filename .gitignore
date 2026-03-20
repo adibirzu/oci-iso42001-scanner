@@ -1,7 +1,38 @@
-__pycache__/
-*.pyc
+# Environment and secrets
 .env
 .env.*
+secrets/
+credentials/
+*.pem
+*.key
+*.wallet
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Results and logs
 *.log
 results/
 /tmp/
+iso42001-results/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OCI Stack build artifacts
+*.zip
+stack-build/
+
+# Playwright / browser automation
+.playwright-cli/
+playwright-report/
+test-results/
