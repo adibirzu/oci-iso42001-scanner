@@ -282,6 +282,26 @@ class ScannerHandler(BaseHTTPRequestHandler):
                 "total": len(REMEDIATIONS),
             })
 
+        if path == "/api/iso42001/standard":
+            # Serve the full ISO 42001 standard reference with OCI mapping
+            ref_file = Path(__file__).parent / "config" / "standard_reference.json"
+            if ref_file.exists():
+                return self._send_json(json.loads(ref_file.read_text()))
+            return self._send_json({"error": "Standard reference not available"}, 404)
+
+        if path.startswith("/api/iso42001/standard/"):
+            # Serve specific clause or annex: /api/iso42001/standard/A.7 or /api/iso42001/standard/5
+            ref_file = Path(__file__).parent / "config" / "standard_reference.json"
+            if not ref_file.exists():
+                return self._send_json({"error": "Standard reference not available"}, 404)
+            ref = json.loads(ref_file.read_text())
+            key = path.split("/api/iso42001/standard/")[1]
+            if key in ref.get("clauses", {}):
+                return self._send_json(ref["clauses"][key])
+            if key in ref.get("annex_a", {}):
+                return self._send_json(ref["annex_a"][key])
+            return self._send_json({"error": f"Section '{key}' not found"}, 404)
+
         if path == "/api/iso42001/history":
             return self._send_json({
                 "scans": _scan_history,
