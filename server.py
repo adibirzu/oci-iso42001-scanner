@@ -15,10 +15,9 @@ Usage:
 
     # Start with config profile (development)
     python server.py --profile cap --tenancy <OCID> --port 8080
-
-    # With all features enabled
-    python server.py --auth instance_principal --tenancy <OCID> --all-features
 """
+from __future__ import annotations
+
 import argparse
 import json
 import os
@@ -41,6 +40,83 @@ _scan_running = False
 _scan_lock = threading.Lock()
 _client = None
 _results_dir = Path("/tmp/iso42001-results")
+_scan_history: list[dict] = []
+MAX_HISTORY = 30
+
+
+# ── Remediation Catalog ──
+
+REMEDIATIONS = {
+    "CL4-03": {
+        "title": "Create AI-specific compartment",
+        "steps": [
+            "oci iam compartment create --name ai-workloads --compartment-id <TENANCY> --description 'AI/ML workloads compartment'",
+            "Apply tags: AIGovernance.Purpose=ai-workloads",
+        ],
+        "alternatives": "Any cloud provider with resource grouping (AWS Accounts, Azure Resource Groups, GCP Projects)",
+    },
+    "CL5-02": {
+        "title": "Create AI governance policies",
+        "steps": [
+            "Create IAM policy: allow group ai-admins to manage generative-ai-family in compartment ai-workloads",
+            "Create IAM policy: allow group ai-admins to manage data-science-family in compartment ai-workloads",
+        ],
+        "alternatives": "AWS IAM policies for SageMaker/Bedrock, Azure RBAC for Azure AI",
+    },
+    "CL9-01": {
+        "title": "Enable 365-day audit log retention",
+        "steps": [
+            "oci audit config update --compartment-id <TENANCY> --retention-period-days 365",
+        ],
+        "alternatives": "AWS CloudTrail with S3 lifecycle, Azure Activity Log with Log Analytics workspace retention",
+    },
+    "A2.2-01": {
+        "title": "Create AI service IAM policies",
+        "steps": [
+            "oci iam policy create --name ai-governance-policy --compartment-id <TENANCY> --statements '[\"allow group ai-admins to manage generative-ai-family in tenancy\"]'",
+        ],
+        "alternatives": "Any IAM system with service-scoped access controls",
+    },
+    "A6.5-01": {
+        "title": "Enable bucket versioning for data provenance",
+        "steps": [
+            "oci os bucket update --name <BUCKET> --versioning Enabled --namespace <NS>",
+        ],
+        "alternatives": "AWS S3 versioning, Azure Blob soft-delete, GCS object versioning",
+    },
+    "A6.5-02": {
+        "title": "Enable customer-managed encryption keys",
+        "steps": [
+            "oci kms management vault create --compartment-id <COMP> --display-name ai-vault --vault-type DEFAULT",
+            "oci kms management key create --compartment-id <COMP> --display-name ai-master-key --key-shape '{\"algorithm\":\"AES\",\"length\":32}'",
+            "oci os bucket update --name <BUCKET> --kms-key-id <KEY_OCID>",
+        ],
+        "alternatives": "AWS KMS with CMK, Azure Key Vault, GCP Cloud KMS",
+    },
+    "A7.5-01": {
+        "title": "Create KMS Vault for AI data encryption",
+        "steps": [
+            "oci kms management vault create --compartment-id <COMP> --display-name ai-data-vault --vault-type DEFAULT",
+        ],
+        "alternatives": "AWS KMS, Azure Key Vault, GCP Cloud KMS, HashiCorp Vault",
+    },
+    "A8.4-02": {
+        "title": "Configure logging for AI services",
+        "steps": [
+            "oci logging log-group create --compartment-id <COMP> --display-name ai-service-logs",
+            "oci logging log create --log-group-id <LG_ID> --display-name datascience-log --log-type SERVICE --configuration '{\"source\":{\"service\":\"datascience\",\"resource\":\"\",\"category\":\"all\"}}'",
+        ],
+        "alternatives": "AWS CloudWatch Logs for SageMaker, Azure Monitor for Azure AI",
+    },
+    "A9.3-02": {
+        "title": "Enforce MFA for all users",
+        "steps": [
+            "Navigate to OCI Console → Identity → Authentication Settings",
+            "Enable MFA for all users or at minimum AI administrator groups",
+        ],
+        "alternatives": "Any IdP with MFA support (Okta, Azure AD, Google Workspace)",
+    },
+}
 
 
 def _run_scan():
@@ -60,10 +136,29 @@ def _run_scan():
 
         _latest_results = results
 
-        # Persist to disk
+        # Persist to disk (latest + timestamped history)
         _results_dir.mkdir(parents=True, exist_ok=True)
         out = _results_dir / "latest.json"
         out.write_text(json.dumps(results, indent=2))
+
+        ts = results.get("scan_timestamp", datetime.now(timezone.utc).isoformat())
+        hist_file = _results_dir / f"scan_{ts[:19].replace(':', '-')}.json"
+        hist_file.write_text(json.dumps(results, indent=2))
+
+        # Update in-memory history
+        _scan_history.append({
+            "scan_date": results.get("scan_date"),
+            "scan_timestamp": ts,
+            "score": results.get("score"),
+            "passed": results.get("passed"),
+            "total": results.get("total"),
+            "requirements_passed": results.get("requirements_passed"),
+            "requirements_total": results.get("requirements_total"),
+        })
+        # Keep only the last N entries
+        while len(_scan_history) > MAX_HISTORY:
+            _scan_history.pop(0)
+
         print(f"[Server] Scan complete. {results['total']} checks, score={results['score']}%")
     except Exception as e:
         print(f"[Server] Scan error: {e}")
@@ -82,6 +177,17 @@ def _load_cached():
         try:
             _latest_results = json.loads(cached.read_text())
             print(f"[Server] Loaded cached results from {cached}")
+            # Seed history from cached
+            if _latest_results:
+                _scan_history.append({
+                    "scan_date": _latest_results.get("scan_date"),
+                    "scan_timestamp": _latest_results.get("scan_timestamp"),
+                    "score": _latest_results.get("score"),
+                    "passed": _latest_results.get("passed"),
+                    "total": _latest_results.get("total"),
+                    "requirements_passed": _latest_results.get("requirements_passed"),
+                    "requirements_total": _latest_results.get("requirements_total"),
+                })
         except Exception:
             pass
 
@@ -89,18 +195,21 @@ def _load_cached():
 class ScannerHandler(BaseHTTPRequestHandler):
     """HTTP request handler for scanner API."""
 
+    protocol_version = "HTTP/1.1"
+
     def log_message(self, format, *args):
-        # Quieter logging
         print(f"[API] {args[0]} {args[1]}")
 
     def _send_json(self, data, status=200):
+        body = json.dumps(data).encode()
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.end_headers()
-        self.wfile.write(json.dumps(data).encode())
+        self.wfile.write(body)
 
     def _send_error(self, msg, status=500):
         self._send_json({"error": msg}, status)
@@ -121,6 +230,7 @@ class ScannerHandler(BaseHTTPRequestHandler):
                 "has_results": _latest_results is not None,
                 "scan_running": _scan_running,
                 "tenancy": _client.tenancy if _client else "",
+                "last_scan": _latest_results.get("scan_timestamp") if _latest_results else None,
             })
 
         # ── ISO 42001 Endpoints ──
@@ -128,12 +238,55 @@ class ScannerHandler(BaseHTTPRequestHandler):
         if path == "/api/iso42001/summary":
             if not _latest_results:
                 return self._send_json({"error": "No scan results. POST /api/iso42001/scan first."}, 404)
-            # Return top-level summary (without heavy nested data)
             summary = {k: v for k, v in _latest_results.items()
                        if k not in ("cross_framework", "certification_roadmap",
                                     "gap_analysis", "statement_of_applicability",
                                     "evidence_register", "eu_ai_act_enforcement")}
             return self._send_json(summary)
+
+        if path == "/api/iso42001/checks":
+            if not _latest_results:
+                return self._send_json({"error": "No scan results"}, 404)
+            checks = _latest_results.get("checks", [])
+            # Filter by query params
+            severity = params.get("severity", [None])[0]
+            status_filter = params.get("status", [None])[0]  # "failed" or "passed"
+            section = params.get("section", [None])[0]
+            check_type = params.get("type", [None])[0]  # "requirement" or "recommendation"
+            if severity:
+                checks = [c for c in checks if c.get("severity") == severity]
+            if status_filter == "failed":
+                checks = [c for c in checks if c.get("compliant") == "No"]
+            elif status_filter == "passed":
+                checks = [c for c in checks if c.get("compliant") == "Yes"]
+            if section:
+                checks = [c for c in checks if section.lower() in c.get("section", "").lower()]
+            if check_type:
+                checks = [c for c in checks if c.get("check_type") == check_type]
+            return self._send_json({
+                "checks": checks,
+                "total": len(checks),
+                "filters": {"severity": severity, "status": status_filter,
+                             "section": section, "type": check_type},
+            })
+
+        if path == "/api/iso42001/remediation":
+            check_id = params.get("check_id", [None])[0]
+            if check_id and check_id in REMEDIATIONS:
+                return self._send_json({"check_id": check_id, **REMEDIATIONS[check_id]})
+            if check_id:
+                return self._send_json({"error": f"No remediation for {check_id}"}, 404)
+            # Return full catalog
+            return self._send_json({
+                "catalog": REMEDIATIONS,
+                "total": len(REMEDIATIONS),
+            })
+
+        if path == "/api/iso42001/history":
+            return self._send_json({
+                "scans": _scan_history,
+                "total": len(_scan_history),
+            })
 
         if path == "/api/iso42001/roadmap":
             if not _latest_results:
@@ -181,12 +334,12 @@ class ScannerHandler(BaseHTTPRequestHandler):
                 "running": _scan_running,
                 "has_results": _latest_results is not None,
                 "last_scan": _latest_results.get("scan_timestamp") if _latest_results else None,
+                "score": _latest_results.get("score") if _latest_results else None,
             })
 
         # ── Legacy CIS endpoints (passthrough for backward compat) ──
 
         if path == "/api/summary":
-            # Return CIS summary if available, else ISO 42001 summary
             if _latest_results:
                 return self._send_json({
                     "score": _latest_results.get("score"),
@@ -217,12 +370,11 @@ class ScannerHandler(BaseHTTPRequestHandler):
             thread.start()
             return self._send_json({
                 "message": "ISO 42001 v2 scan triggered",
-                "checks": "73 (20 clauses + 53 annex)",
+                "checks": f"{_latest_results['total']} checks" if _latest_results else "~78 checks",
                 "estimated_time": "2-5 minutes",
             })
 
         if path == "/api/iso42001/classify":
-            # Read JSON body
             content_len = int(self.headers.get("Content-Length", 0))
             body = json.loads(self.rfile.read(content_len)) if content_len > 0 else {}
             result = EUAIActRiskEngine.classify(body)
@@ -268,15 +420,18 @@ def main():
     print(f"[Server] Tenancy: {args.tenancy}")
     print(f"[Server] Auth: {args.auth}")
     print(f"[Server] Endpoints:")
-    print(f"  GET  /api/iso42001/summary     — Scan results overview")
-    print(f"  GET  /api/iso42001/roadmap      — 12-step certification roadmap")
-    print(f"  GET  /api/iso42001/gaps         — Gap analysis (12 domains)")
-    print(f"  GET  /api/iso42001/frameworks   — EU AI Act + NIST AI RMF mapping")
-    print(f"  GET  /api/iso42001/soa          — Statement of Applicability")
-    print(f"  GET  /api/iso42001/evidence     — Evidence register")
-    print(f"  GET  /api/iso42001/scan/status  — Scan status")
-    print(f"  POST /api/iso42001/scan         — Trigger new scan")
-    print(f"  POST /api/iso42001/classify     — EU AI Act risk tier classification")
+    print(f"  GET  /api/iso42001/summary       — Scan results overview")
+    print(f"  GET  /api/iso42001/checks        — Filterable check results (?severity=high&status=failed)")
+    print(f"  GET  /api/iso42001/remediation    — Remediation guidance (?check_id=A6.5-01)")
+    print(f"  GET  /api/iso42001/history        — Scan history with score trending")
+    print(f"  GET  /api/iso42001/roadmap        — 12-step certification roadmap")
+    print(f"  GET  /api/iso42001/gaps           — Gap analysis (12 domains)")
+    print(f"  GET  /api/iso42001/frameworks     — EU AI Act + NIST AI RMF mapping")
+    print(f"  GET  /api/iso42001/soa            — Statement of Applicability")
+    print(f"  GET  /api/iso42001/evidence        — Evidence register")
+    print(f"  GET  /api/iso42001/scan/status    — Scan status")
+    print(f"  POST /api/iso42001/scan           — Trigger new scan")
+    print(f"  POST /api/iso42001/classify       — EU AI Act risk tier classification")
 
     try:
         server.serve_forever()
