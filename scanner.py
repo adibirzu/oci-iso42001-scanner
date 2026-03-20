@@ -23,6 +23,8 @@ Note: ISO/IEC 42001:2023 is copyrighted by ISO/IEC.
 This scanner references control IDs for compliance checking only.
 Purchase the standard at https://www.iso.org/standard/81230.html
 """
+from __future__ import annotations
+
 import argparse
 import json
 import subprocess

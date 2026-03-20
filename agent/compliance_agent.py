@@ -30,6 +30,8 @@ References (all public):
   - OCI Cloud Guard: https://docs.oracle.com/en-us/iaas/cloud-guard/using/index.htm
   - OCI IAM: https://docs.oracle.com/en-us/iaas/Content/Identity/Concepts/overview.htm
 """
+from __future__ import annotations
+
 import glob
 import json
 import os
