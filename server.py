@@ -119,6 +119,152 @@ REMEDIATIONS = {
 }
 
 
+def _load_standard_ref() -> dict:
+    """Load the ISO 42001 standard reference data."""
+    ref_file = Path(__file__).parent / "config" / "standard_reference.json"
+    if ref_file.exists():
+        return json.loads(ref_file.read_text())
+    return {}
+
+
+def _enrich_checks_with_standard(results: dict, ref: dict):
+    """Add ISO standard requirement text, guidance, and OCI mapping to each check."""
+    # Build a lookup: check_id -> {requirement, guidance, oci_mapping, control_objective}
+    check_lookup = {}
+    for clause_id, clause in ref.get("clauses", {}).items():
+        for sec_id, sec in clause.get("sections", {}).items():
+            for cid in sec.get("checks", []):
+                check_lookup[cid] = {
+                    "iso_clause": f"Clause {clause_id}",
+                    "iso_section": sec_id,
+                    "iso_section_title": sec.get("title", ""),
+                    "iso_requirement": sec.get("requirement", ""),
+                    "oci_mapping": sec.get("oci_mapping", ""),
+                }
+    for annex_id, annex in ref.get("annex_a", {}).items():
+        for ctrl_id, ctrl in annex.get("controls", {}).items():
+            for cid in ctrl.get("checks", []):
+                check_lookup[cid] = {
+                    "iso_clause": f"Annex A",
+                    "iso_section": ctrl_id,
+                    "iso_section_title": ctrl.get("topic", ""),
+                    "iso_control": ctrl.get("control", ""),
+                    "iso_guidance": ctrl.get("implementation_guidance", ""),
+                    "oci_mapping": ctrl.get("oci_mapping", ""),
+                    "control_objective": annex.get("objective", ""),
+                }
+    for check in results.get("checks", []):
+        cid = check.get("check_id", "")
+        if cid in check_lookup:
+            check["standard_ref"] = check_lookup[cid]
+
+
+def _generate_executive_summary(results: dict) -> dict:
+    """Generate an executive summary from scan results."""
+    checks = results.get("checks", [])
+    score = results.get("score", 0)
+    req_passed = results.get("requirements_passed", 0)
+    req_total = results.get("requirements_total", 0)
+    failed_high = [c for c in checks if c.get("compliant") == "No" and c.get("severity") == "high"]
+    failed_medium = [c for c in checks if c.get("compliant") == "No" and c.get("severity") == "medium"]
+
+    # Risk level
+    if score >= 80:
+        risk_level, risk_color = "LOW", "#4ade80"
+    elif score >= 50:
+        risk_level, risk_color = "MODERATE", "#fbbf24"
+    else:
+        risk_level, risk_color = "HIGH", "#f87171"
+
+    # Top 5 critical findings
+    critical_findings = []
+    for c in sorted(failed_high, key=lambda x: x.get("section", "")):
+        critical_findings.append({
+            "check_id": c["check_id"],
+            "title": c["title"],
+            "section": c["section"],
+            "detail": c.get("detail", ""),
+            "oci_service": c.get("oci_service", ""),
+        })
+
+    # Section-level summary
+    sections = results.get("by_section", {})
+    weakest = sorted(sections.items(), key=lambda x: x[1]["pass"] / max(x[1]["total"], 1))[:3]
+    strongest = sorted(sections.items(), key=lambda x: x[1]["pass"] / max(x[1]["total"], 1), reverse=True)[:3]
+
+    # Severity distribution
+    severity_dist = {"high": 0, "medium": 0, "low": 0}
+    for c in checks:
+        if c.get("compliant") == "No":
+            sev = c.get("severity", "medium")
+            severity_dist[sev] = severity_dist.get(sev, 0) + 1
+
+    return {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "scan_date": results.get("scan_date"),
+        "overall_score": score,
+        "risk_level": risk_level,
+        "risk_color": risk_color,
+        "requirements": {"passed": req_passed, "total": req_total},
+        "total_checks": len(checks),
+        "passed": results.get("passed", 0),
+        "failed": results.get("failed", 0),
+        "severity_distribution": severity_dist,
+        "critical_findings": critical_findings[:10],
+        "critical_findings_count": len(failed_high),
+        "medium_findings_count": len(failed_medium),
+        "weakest_areas": [{"section": s, "pass": v["pass"], "total": v["total"],
+                           "pct": round(v["pass"] / max(v["total"], 1) * 100)} for s, v in weakest],
+        "strongest_areas": [{"section": s, "pass": v["pass"], "total": v["total"],
+                             "pct": round(v["pass"] / max(v["total"], 1) * 100)} for s, v in strongest],
+        "recommended_actions": [
+            f"Address {len(failed_high)} high-severity findings as priority",
+            "Establish AI-specific IAM policies and compartments" if any(c["check_id"].startswith("A2") or c["check_id"] == "CL5-02" for c in failed_high) else None,
+            "Enable audit log retention >= 365 days" if any(c["check_id"] in ("CL9-01", "A8.4-04") for c in failed_high) else None,
+            "Implement KMS encryption with customer-managed keys" if any(c["check_id"] in ("A7.5-01", "A6.5-02") for c in failed_high) else None,
+            "Enforce MFA for all users" if any(c["check_id"] == "A9.3-02" for c in failed_high) else None,
+            "Enable bucket versioning for data provenance" if any(c["check_id"] in ("A6.5-01", "A7.5-01a") for c in failed_high) else None,
+        ],
+    }
+
+
+def _generate_risk_matrix(results: dict) -> dict:
+    """Generate a severity x section risk matrix."""
+    checks = results.get("checks", [])
+    matrix = {}
+    for c in checks:
+        section = c.get("section", "Other")
+        sev = c.get("severity", "medium")
+        if section not in matrix:
+            matrix[section] = {"high": {"pass": 0, "fail": 0}, "medium": {"pass": 0, "fail": 0}, "low": {"pass": 0, "fail": 0}}
+        status = "pass" if c.get("compliant") == "Yes" else "fail"
+        matrix[section][sev][status] += 1
+
+    # Calculate risk scores per section (weighted: high=3, medium=2, low=1)
+    risk_scores = []
+    for section, sevs in sorted(matrix.items()):
+        weighted_risk = sevs["high"]["fail"] * 3 + sevs["medium"]["fail"] * 2 + sevs["low"]["fail"]
+        total = sum(s["pass"] + s["fail"] for s in sevs.values())
+        risk_scores.append({
+            "section": section,
+            "high_fail": sevs["high"]["fail"],
+            "medium_fail": sevs["medium"]["fail"],
+            "low_fail": sevs["low"]["fail"],
+            "total_pass": sum(s["pass"] for s in sevs.values()),
+            "total_fail": sum(s["fail"] for s in sevs.values()),
+            "total": total,
+            "weighted_risk": weighted_risk,
+            "risk_level": "critical" if weighted_risk >= 6 else "high" if weighted_risk >= 3 else "medium" if weighted_risk >= 1 else "low",
+        })
+
+    return {
+        "matrix": matrix,
+        "risk_scores": sorted(risk_scores, key=lambda x: -x["weighted_risk"]),
+        "total_weighted_risk": sum(r["weighted_risk"] for r in risk_scores),
+        "max_possible_risk": len(checks) * 3,
+    }
+
+
 def _run_scan():
     """Run a full scan in background thread."""
     global _latest_results, _scan_running
@@ -133,6 +279,15 @@ def _run_scan():
         results["statement_of_applicability"] = GapAnalysisEngine.generate_soa(results)
         results["evidence_register"] = EvidenceRegister.create_register(results)
         results["eu_ai_act_enforcement"] = EUAIActRiskEngine.get_enforcement_status()
+
+        # Enrich checks with standard reference data
+        ref = _load_standard_ref()
+        if ref:
+            _enrich_checks_with_standard(results, ref)
+
+        # Generate executive summary and risk matrix
+        results["executive_summary"] = _generate_executive_summary(results)
+        results["risk_matrix"] = _generate_risk_matrix(results)
 
         _latest_results = results
 
@@ -281,6 +436,18 @@ class ScannerHandler(BaseHTTPRequestHandler):
                 "catalog": REMEDIATIONS,
                 "total": len(REMEDIATIONS),
             })
+
+        if path == "/api/iso42001/executive-summary":
+            if not _latest_results:
+                return self._send_json({"error": "No scan results"}, 404)
+            return self._send_json(
+                _latest_results.get("executive_summary", _generate_executive_summary(_latest_results)))
+
+        if path == "/api/iso42001/risk-matrix":
+            if not _latest_results:
+                return self._send_json({"error": "No scan results"}, 404)
+            return self._send_json(
+                _latest_results.get("risk_matrix", _generate_risk_matrix(_latest_results)))
 
         if path == "/api/iso42001/standard":
             # Serve the full ISO 42001 standard reference with OCI mapping
