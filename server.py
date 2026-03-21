@@ -469,6 +469,23 @@ class ScannerHandler(BaseHTTPRequestHandler):
                 return self._send_json(ref["annex_a"][key])
             return self._send_json({"error": f"Section '{key}' not found"}, 404)
 
+        if path == "/api/iso42001/trend":
+            if len(_scan_history) < 2:
+                return self._send_json({"error": "Need at least 2 scans for trend analysis"}, 404)
+            current = _scan_history[-1]
+            previous = _scan_history[-2]
+            score_delta = (current.get("score", 0) or 0) - (previous.get("score", 0) or 0)
+            passed_delta = (current.get("passed", 0) or 0) - (previous.get("passed", 0) or 0)
+            return self._send_json({
+                "current": current,
+                "previous": previous,
+                "score_delta": score_delta,
+                "passed_delta": passed_delta,
+                "direction": "improving" if score_delta > 0 else "declining" if score_delta < 0 else "stable",
+                "total_scans": len(_scan_history),
+                "trend_data": [{"date": s.get("scan_date"), "score": s.get("score")} for s in _scan_history],
+            })
+
         if path == "/api/iso42001/history":
             return self._send_json({
                 "scans": _scan_history,
