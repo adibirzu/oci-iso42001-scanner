@@ -366,6 +366,15 @@ class ScannerHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _send_html(self, html, status=200):
+        body = html.encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+        self.wfile.write(body)
+
     def _send_error(self, msg, status=500):
         self._send_json({"error": msg}, status)
 
@@ -541,6 +550,11 @@ class ScannerHandler(BaseHTTPRequestHandler):
                 "score": _latest_results.get("score") if _latest_results else None,
             })
 
+        if path == "/api/iso42001/report":
+            if not _latest_results:
+                return self._send_error("No scan results. POST /api/iso42001/scan first.", 404)
+            return self._send_html(self._generate_html_report(_latest_results))
+
         # ── Legacy CIS endpoints (passthrough for backward compat) ──
 
         if path == "/api/summary":
@@ -558,6 +572,225 @@ class ScannerHandler(BaseHTTPRequestHandler):
             return self._send_json({"running": _scan_running})
 
         self._send_error(f"Unknown endpoint: {path}", 404)
+
+    def _generate_html_report(self, results: dict) -> str:
+        """Generate an HTML compliance report in Oracle Redwood style."""
+        from html import escape
+
+        checks = results.get("checks", [])
+        score = results.get("score", 0)
+        scan_date = results.get("scan_date", "N/A")
+        scan_ts = results.get("scan_timestamp", "")
+        passed = results.get("passed", 0)
+        failed = results.get("failed", 0)
+        total = results.get("total", 0)
+        req_passed = results.get("requirements_passed", 0)
+        req_total = results.get("requirements_total", 0)
+
+        # Risk level
+        if score >= 80:
+            risk_level, risk_color = "LOW", "#4ade80"
+        elif score >= 50:
+            risk_level, risk_color = "MODERATE", "#fbbf24"
+        else:
+            risk_level, risk_color = "HIGH", "#f87171"
+
+        # Severity distribution of failures
+        sev_dist = {"high": 0, "medium": 0, "low": 0}
+        for c in checks:
+            if c.get("compliant") == "No":
+                sev_dist[c.get("severity", "medium")] = sev_dist.get(c.get("severity", "medium"), 0) + 1
+
+        # Section breakdown
+        by_section = results.get("by_section", {})
+        section_rows = ""
+        for sec_name in sorted(by_section.keys()):
+            sec = by_section[sec_name]
+            s_pass = sec.get("pass", 0)
+            s_fail = sec.get("fail", 0)
+            s_total = sec.get("total", 0)
+            s_pct = round(s_pass / s_total * 100) if s_total > 0 else 0
+            bar_color = "#4ade80" if s_pct >= 80 else "#fbbf24" if s_pct >= 50 else "#f87171"
+            section_rows += f"""<tr>
+                <td>{escape(sec_name)}</td>
+                <td style="text-align:center">{s_pass}</td>
+                <td style="text-align:center">{s_fail}</td>
+                <td style="text-align:center">{s_total}</td>
+                <td><div style="background:#e5e7eb;border-radius:4px;overflow:hidden;height:20px">
+                    <div style="background:{bar_color};height:100%;width:{s_pct}%;min-width:2px"></div>
+                </div><span style="font-size:0.85em">{s_pct}%</span></td>
+            </tr>\n"""
+
+        # Critical findings (failed + high severity)
+        critical = [c for c in checks if c.get("compliant") == "No" and c.get("severity") == "high"]
+        critical_rows = ""
+        for c in sorted(critical, key=lambda x: x.get("check_id", "")):
+            critical_rows += f"""<tr>
+                <td><code>{escape(c.get('check_id', ''))}</code></td>
+                <td>{escape(c.get('title', ''))}</td>
+                <td>{escape(c.get('section', ''))}</td>
+                <td>{escape(c.get('detail', ''))}</td>
+            </tr>\n"""
+
+        # All checks table
+        all_checks_rows = ""
+        for c in checks:
+            compliant = c.get("compliant", "N/A")
+            badge_color = "#4ade80" if compliant == "Yes" else "#f87171" if compliant == "No" else "#9ca3af"
+            sev = c.get("severity", "medium")
+            sev_color = "#f87171" if sev == "high" else "#fbbf24" if sev == "medium" else "#60a5fa"
+            all_checks_rows += f"""<tr>
+                <td><code>{escape(c.get('check_id', ''))}</code></td>
+                <td>{escape(c.get('title', ''))}</td>
+                <td>{escape(c.get('section', ''))}</td>
+                <td><span style="background:{sev_color};color:#fff;padding:2px 8px;border-radius:10px;font-size:0.8em">{escape(sev)}</span></td>
+                <td><span style="background:{badge_color};color:#fff;padding:2px 8px;border-radius:10px;font-size:0.8em">{escape(compliant)}</span></td>
+                <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{escape(c.get('detail', ''))}">{escape(c.get('detail', ''))}</td>
+            </tr>\n"""
+
+        # Cross-framework
+        cf = results.get("cross_framework", {})
+        eu_ai = cf.get("eu_ai_act", {})
+        nist = cf.get("nist_ai_rmf", {})
+        eu_readiness = eu_ai.get("readiness_pct", "N/A")
+        nist_scores = nist.get("function_scores", {})
+        nist_rows = ""
+        for func, func_score in nist_scores.items():
+            nist_rows += f"<tr><td>{escape(func)}</td><td>{func_score}%</td></tr>\n"
+
+        html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ISO/IEC 42001:2023 Compliance Report</title>
+<link rel="stylesheet" href="https://www.oracle.com/asset/web/css/redwood-base.css">
+<link rel="stylesheet" href="https://www.oracle.com/asset/web/css/redwood-styles.css">
+<style>
+  body {{ font-family: 'Oracle Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+         margin: 0; padding: 0; background: #f9fafb; color: #1a1a1a; }}
+  .report-header {{ background: linear-gradient(135deg, #312e81 0%, #1e1b4b 100%); color: #fff;
+                     padding: 40px 48px; }}
+  .report-header h1 {{ margin: 0 0 8px 0; font-size: 1.75em; font-weight: 600; }}
+  .report-header .meta {{ opacity: 0.85; font-size: 0.95em; }}
+  .score-badge {{ display: inline-block; background: rgba(255,255,255,0.15); border-radius: 12px;
+                   padding: 12px 24px; margin-top: 16px; font-size: 1.3em; font-weight: 700; }}
+  .container {{ max-width: 1200px; margin: 0 auto; padding: 32px 24px; }}
+  .card {{ background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            padding: 24px 28px; margin-bottom: 24px; }}
+  .card h2 {{ margin: 0 0 16px 0; font-size: 1.25em; color: #312e81; border-bottom: 2px solid #e5e7eb;
+              padding-bottom: 8px; }}
+  .summary-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; }}
+  .summary-item {{ text-align: center; padding: 16px; background: #f8f9fa; border-radius: 8px; }}
+  .summary-item .value {{ font-size: 1.8em; font-weight: 700; color: #312e81; }}
+  .summary-item .label {{ font-size: 0.85em; color: #6b7280; margin-top: 4px; }}
+  table {{ width: 100%; border-collapse: collapse; font-size: 0.9em; }}
+  th {{ background: #f1f5f9; text-align: left; padding: 10px 12px; font-weight: 600;
+        color: #475569; border-bottom: 2px solid #e2e8f0; }}
+  td {{ padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }}
+  tr:hover {{ background: #f8fafc; }}
+  code {{ background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }}
+  .footer {{ text-align: center; padding: 24px; color: #9ca3af; font-size: 0.8em; border-top: 1px solid #e5e7eb; margin-top: 32px; }}
+</style>
+</head>
+<body>
+
+<div class="report-header">
+  <h1>ISO/IEC 42001:2023 AI Management System &mdash; Compliance Report</h1>
+  <div class="meta">Scan Date: {escape(scan_date)} &bull; Generated: {escape(datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC'))}</div>
+  <div class="score-badge" style="color:{risk_color}">{score}% &mdash; Risk: {risk_level}</div>
+</div>
+
+<div class="container">
+
+  <!-- Executive Summary -->
+  <div class="card">
+    <h2>Executive Summary</h2>
+    <div class="summary-grid">
+      <div class="summary-item">
+        <div class="value" style="color:{risk_color}">{score}%</div>
+        <div class="label">Compliance Score</div>
+      </div>
+      <div class="summary-item">
+        <div class="value">{risk_level}</div>
+        <div class="label">Risk Level</div>
+      </div>
+      <div class="summary-item">
+        <div class="value">{req_passed}/{req_total}</div>
+        <div class="label">Requirements Passed</div>
+      </div>
+      <div class="summary-item">
+        <div class="value">{passed}/{total}</div>
+        <div class="label">Checks Passed</div>
+      </div>
+      <div class="summary-item">
+        <div class="value" style="color:#f87171">{sev_dist['high']}</div>
+        <div class="label">High Severity Failures</div>
+      </div>
+      <div class="summary-item">
+        <div class="value" style="color:#fbbf24">{sev_dist['medium']}</div>
+        <div class="label">Medium Severity Failures</div>
+      </div>
+      <div class="summary-item">
+        <div class="value" style="color:#60a5fa">{sev_dist['low']}</div>
+        <div class="label">Low Severity Failures</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section Breakdown -->
+  <div class="card">
+    <h2>Section Breakdown</h2>
+    <table>
+      <thead><tr><th>Section</th><th style="text-align:center">Pass</th><th style="text-align:center">Fail</th><th style="text-align:center">Total</th><th>Compliance</th></tr></thead>
+      <tbody>{section_rows}</tbody>
+    </table>
+  </div>
+
+  <!-- Critical Findings -->
+  <div class="card">
+    <h2>Critical Findings ({len(critical)} high-severity failures)</h2>
+    {"<p style='color:#4ade80;font-weight:600'>No critical findings.</p>" if not critical else f'''<table>
+      <thead><tr><th>Check ID</th><th>Title</th><th>Section</th><th>Detail</th></tr></thead>
+      <tbody>{critical_rows}</tbody>
+    </table>'''}
+  </div>
+
+  <!-- All Checks -->
+  <div class="card">
+    <h2>All Checks ({total})</h2>
+    <table>
+      <thead><tr><th>Check ID</th><th>Title</th><th>Section</th><th>Severity</th><th>Status</th><th>Detail</th></tr></thead>
+      <tbody>{all_checks_rows}</tbody>
+    </table>
+  </div>
+
+  <!-- Cross-Framework Mapping -->
+  <div class="card">
+    <h2>Cross-Framework Mapping</h2>
+    <div class="summary-grid">
+      <div class="summary-item">
+        <div class="value">{eu_readiness}{"%" if isinstance(eu_readiness, (int, float)) else ""}</div>
+        <div class="label">EU AI Act Readiness</div>
+      </div>
+    </div>
+    {"" if not nist_rows else f'''<h3 style="margin-top:16px;font-size:1em;color:#475569">NIST AI RMF Function Scores</h3>
+    <table>
+      <thead><tr><th>Function</th><th>Score</th></tr></thead>
+      <tbody>{nist_rows}</tbody>
+    </table>'''}
+  </div>
+
+  <div class="footer">
+    <p>OCI ISO/IEC 42001:2023 Scanner v{VERSION} &bull; {escape(scan_ts)}</p>
+    <p>ISO/IEC 42001:2023 is published by ISO. This report is generated by automated tooling and does not constitute
+    official certification. &copy; ISO/IEC 2023. All rights reserved.</p>
+  </div>
+
+</div>
+</body>
+</html>"""
+        return html
 
     def do_POST(self):
         parsed = urlparse(self.path)
@@ -633,6 +866,7 @@ def main():
     print(f"  GET  /api/iso42001/frameworks     — EU AI Act + NIST AI RMF mapping")
     print(f"  GET  /api/iso42001/soa            — Statement of Applicability")
     print(f"  GET  /api/iso42001/evidence        — Evidence register")
+    print(f"  GET  /api/iso42001/report          — HTML compliance report")
     print(f"  GET  /api/iso42001/scan/status    — Scan status")
     print(f"  POST /api/iso42001/scan           — Trigger new scan")
     print(f"  POST /api/iso42001/classify       — EU AI Act risk tier classification")

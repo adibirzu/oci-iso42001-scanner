@@ -2092,20 +2092,28 @@ class GapAnalysisEngine:
                 auto_check = gap.get("auto_check")
                 check_data = checks.get(auto_check, {}) if auto_check else {}
 
+                impl_status = (
+                    "Implemented" if check_data.get("compliant") == "Yes"
+                    else "Not Implemented" if check_data.get("compliant") == "No"
+                    else "Partially Implemented" if auto_check
+                    else "Planned"
+                )
                 soa.append({
                     "domain": domain["id"],
                     "domain_name": domain["name"],
                     "iso_refs": ", ".join(domain["iso_refs"]),
                     "gap_id": gap["id"],
+                    "control_ref": gap["id"],
                     "control": gap["item"],
+                    "control_name": gap["item"],
                     "applicable": True,
                     "justification": "Required for AIMS certification",
-                    "implementation_status": (
-                        "Implemented" if check_data.get("compliant") == "Yes"
-                        else "Partially Implemented" if auto_check
-                        else "Planned"
-                    ),
+                    "implementation_status": impl_status,
+                    "status": impl_status,
                     "evidence": check_data.get("detail", "Manual evidence required"),
+                    "auto_check": auto_check,
+                    "severity": check_data.get("severity", "medium"),
+                    "check_type": check_data.get("check_type", "requirement"),
                 })
 
         return soa

@@ -7,19 +7,26 @@
           "title": "Understanding the organization and its context",
           "requirement": "The organization shall determine external and internal issues that are relevant to its purpose and that affect its ability to achieve the intended result(s) of its AI management system. The organization shall consider the intended purpose of the AI systems that are developed, provided or used by the organization.",
           "oci_mapping": "OCI Compartments define organizational scope boundaries. Tag Namespaces capture stakeholder context. IAM Domains establish organizational identity.",
-          "checks": ["CL4-01", "CL4-02"]
+          "checks": [
+            "CL4-01",
+            "CL4-02"
+          ]
         },
         "4.2": {
           "title": "Understanding the needs and expectations of interested parties",
           "requirement": "The organization shall determine the interested parties relevant to the AI management system, their relevant requirements, and which requirements will be addressed through the AIMS.",
           "oci_mapping": "Tag Namespaces with classification tags capture stakeholder requirements. IAM Groups represent interested party roles.",
-          "checks": ["CL4-02"]
+          "checks": [
+            "CL4-02"
+          ]
         },
         "4.3": {
           "title": "Determining the scope of the AI management system",
           "requirement": "The organization shall determine the boundaries and applicability of the AI management system to establish its scope. The scope shall be available as documented information.",
           "oci_mapping": "AI-specific compartments (e.g., ai-workloads, ml-platform) define AIMS scope boundaries. Compartment hierarchy maps organizational structure.",
-          "checks": ["CL4-03"]
+          "checks": [
+            "CL4-03"
+          ]
         },
         "4.4": {
           "title": "AI management system",
@@ -36,19 +43,25 @@
           "title": "Leadership and commitment",
           "requirement": "Top management shall demonstrate leadership and commitment with respect to the AI management system by ensuring the AI policy and AI objectives are established, ensuring integration into business processes, ensuring resources are available, communicating importance, and promoting continual improvement.",
           "oci_mapping": "Tenancy admin groups demonstrate leadership commitment. IAM policies define governance scope. Admin group membership shows accountability.",
-          "checks": ["CL5-01"]
+          "checks": [
+            "CL5-01"
+          ]
         },
         "5.2": {
           "title": "AI policy",
           "requirement": "Top management shall establish an AI policy that is appropriate to the purpose of the organization, provides a framework for setting AI objectives, includes commitment to meet applicable requirements, and includes commitment to continual improvement. The AI policy shall be documented, communicated, and available to interested parties.",
           "oci_mapping": "IAM policies containing AI service families (generative-ai, data-science, ai-service) represent the documented AI policy. Policy statements define access governance.",
-          "checks": ["CL5-02"]
+          "checks": [
+            "CL5-02"
+          ]
         },
         "5.3": {
           "title": "Roles, responsibilities and authorities",
           "requirement": "Top management shall ensure that responsibilities and authorities for relevant roles are assigned and communicated. Responsibility for ensuring AIMS conformance and reporting on performance to top management shall be assigned.",
           "oci_mapping": "Multiple IAM groups show role separation. Group-to-policy mappings define authorities. Dynamic groups establish automated role assignment.",
-          "checks": ["CL5-03"]
+          "checks": [
+            "CL5-03"
+          ]
         }
       }
     },
@@ -76,19 +89,27 @@
             }
           },
           "oci_mapping": "Cloud Guard provides risk identification. Cloud Guard security score enables risk assessment. Budgets demonstrate resource planning for risk treatment.",
-          "checks": ["CL6-01", "CL6-02", "CL6-03"]
+          "checks": [
+            "CL6-01",
+            "CL6-02",
+            "CL6-03"
+          ]
         },
         "6.2": {
           "title": "AI objectives and planning to achieve them",
           "requirement": "The organization shall establish AI objectives at relevant functions and levels. AI objectives shall be consistent with the AI policy, measurable, take into account applicable requirements, be monitored, communicated, updated, and available as documented information.",
           "oci_mapping": "OCI Budgets set measurable AI resource objectives. Monitoring Alarms track objective achievement. Cloud Guard recommendations guide improvement objectives.",
-          "checks": ["CL6-02"]
+          "checks": [
+            "CL6-02"
+          ]
         },
         "6.3": {
           "title": "Planning of changes",
           "requirement": "When the organization determines the need for changes to the AI management system, the changes shall be carried out in a planned manner.",
           "oci_mapping": "Resource Manager stacks enable planned infrastructure changes. Events rules detect unplanned changes.",
-          "checks": ["CL8-03"]
+          "checks": [
+            "CL8-03"
+          ]
         }
       }
     },
@@ -99,31 +120,41 @@
           "title": "Resources",
           "requirement": "The organization shall determine and provide the resources needed for the establishment, implementation, maintenance and continual improvement of the AI management system.",
           "oci_mapping": "OCI compute, storage, and AI service quotas define available resources. Budgets track resource allocation. Service limits show capacity planning.",
-          "checks": ["CL7-01"]
+          "checks": [
+            "CL7-01"
+          ]
         },
         "7.2": {
           "title": "Competence",
           "requirement": "The organization shall determine necessary competence of persons doing work that affects AI performance, ensure competence through education/training/experience, and retain documented evidence of competence.",
           "oci_mapping": "Users with API key capability demonstrate technical competence. IAM group memberships show competence-based access.",
-          "checks": ["CL7-03"]
+          "checks": [
+            "CL7-03"
+          ]
         },
         "7.3": {
           "title": "Awareness",
           "requirement": "Persons doing work under the organization's control shall be aware of the AI policy, their contribution to the AIMS effectiveness, and the implications of not conforming with requirements.",
           "oci_mapping": "Notification topics for AI governance alerts. Communication channels for policy updates.",
-          "checks": ["CL7-01"]
+          "checks": [
+            "CL7-01"
+          ]
         },
         "7.4": {
           "title": "Communication",
           "requirement": "The organization shall determine internal and external communications relevant to the AI management system including what, when, with whom, and how to communicate.",
           "oci_mapping": "OCI Notifications topics enable internal communication. Events rules trigger automated notifications.",
-          "checks": ["CL7-01"]
+          "checks": [
+            "CL7-01"
+          ]
         },
         "7.5": {
           "title": "Documented information",
           "requirement": "The AIMS shall include documented information required by this document and information determined necessary for effectiveness. Documented information shall be controlled for availability, suitability, and protection.",
           "oci_mapping": "Log groups provide documented information management. Object Storage with versioning ensures document control. Audit logs provide tamper-evident records.",
-          "checks": ["CL7-02"]
+          "checks": [
+            "CL7-02"
+          ]
         }
       }
     },
@@ -134,25 +165,35 @@
           "title": "Operational planning and control",
           "requirement": "The organization shall plan, implement and control the processes needed to meet requirements and implement the actions determined in Clause 6, by establishing criteria and implementing control of the processes in accordance with the criteria.",
           "oci_mapping": "Resource Manager stacks implement IaC operational controls. Data Science projects organize AI operations. Events rules enforce operational criteria.",
-          "checks": ["CL8-01", "CL8-02", "CL8-03"]
+          "checks": [
+            "CL8-01",
+            "CL8-02",
+            "CL8-03"
+          ]
         },
         "8.2": {
           "title": "AI risk assessment",
           "requirement": "The organization shall perform AI risk assessments in accordance with 6.1.2 at planned intervals or when significant changes are proposed or occur. The organization shall retain documented information of all AI risk assessments.",
           "oci_mapping": "Cloud Guard continuous risk assessment. Data Safe security assessments for database AI workloads. Vulnerability Scanning Service for infrastructure risk.",
-          "checks": ["CL6-01"]
+          "checks": [
+            "CL6-01"
+          ]
         },
         "8.3": {
           "title": "AI risk treatment",
           "requirement": "The organization shall implement the AI risk treatment plan according to 6.1.3 and verify its effectiveness. When risk treatment options are not effective, they shall be reviewed and revalidated.",
           "oci_mapping": "Cloud Guard responders implement automated risk treatment. Security Zones enforce preventive controls. Network security lists/groups restrict attack surface.",
-          "checks": ["CL6-01"]
+          "checks": [
+            "CL6-01"
+          ]
         },
         "8.4": {
           "title": "AI system impact assessment",
           "requirement": "The organization shall perform AI system impact assessments according to 6.1.4 at planned intervals or when significant changes are proposed to occur. Results shall be documented.",
           "oci_mapping": "Cloud Guard targets covering AI compartments enable impact assessment. Data Safe assessments evaluate database impact. Audit log retention provides impact assessment documentation.",
-          "checks": ["CL6-03"]
+          "checks": [
+            "CL6-03"
+          ]
         }
       }
     },
@@ -163,19 +204,28 @@
           "title": "Monitoring, measurement, analysis and evaluation",
           "requirement": "The organization shall determine what needs to be monitored and measured, the methods for monitoring and measurement, when monitoring shall be performed, and when results shall be analysed and evaluated. Documented information shall be available as evidence.",
           "oci_mapping": "Audit log retention >= 365 days provides performance evidence. OCI Monitoring with alarms tracks AI system metrics. Cloud Guard security scoring provides continuous evaluation.",
-          "checks": ["CL9-01", "CL9-02"]
+          "checks": [
+            "CL9-01",
+            "CL9-02"
+          ]
         },
         "9.2": {
           "title": "Internal audit",
           "requirement": "The organization shall conduct internal audits at planned intervals to determine whether the AIMS conforms to requirements and is effectively implemented and maintained. An audit programme shall be established.",
           "oci_mapping": "Cloud Guard security scoring acts as continuous internal audit. Data Safe security assessments provide database audit capability. Audit trail provides tamper-evident evidence.",
-          "checks": ["CL9-02", "CL9-03"]
+          "checks": [
+            "CL9-02",
+            "CL9-03"
+          ]
         },
         "9.3": {
           "title": "Management review",
           "requirement": "Top management shall review the AIMS at planned intervals, considering status of previous actions, changes in context, performance information (including nonconformities, monitoring results, audit results), and improvement opportunities.",
           "oci_mapping": "Cloud Guard security score trends inform management review. Compliance scan history provides trending data. Dashboard visualizations support management reporting.",
-          "checks": ["CL9-01", "CL9-02"]
+          "checks": [
+            "CL9-01",
+            "CL9-02"
+          ]
         }
       }
     },
@@ -186,13 +236,17 @@
           "title": "Continual improvement",
           "requirement": "The organization shall continually improve the suitability, adequacy and effectiveness of the AI management system.",
           "oci_mapping": "Cloud Guard recommendations track improvement opportunities. Active recommendations show continual improvement in progress.",
-          "checks": ["CL10-02"]
+          "checks": [
+            "CL10-02"
+          ]
         },
         "10.2": {
           "title": "Nonconformity and corrective action",
           "requirement": "When a nonconformity occurs, the organization shall react, evaluate the need for corrective action, implement action needed, review effectiveness, and make changes to the AIMS if necessary. Documented information shall be available as evidence.",
           "oci_mapping": "Cloud Guard active problems represent nonconformities. Problem remediation workflow tracks corrective actions. Problem resolution evidence demonstrates effectiveness review.",
-          "checks": ["CL10-01"]
+          "checks": [
+            "CL10-01"
+          ]
         }
       }
     }
@@ -207,14 +261,19 @@
           "control": "The organization shall document a policy for the development or use of AI systems.",
           "implementation_guidance": "The AI policy should be informed by business strategy, organizational values and culture, the level of risk posed by AI systems, legal requirements, and impact to relevant interested parties. It should include principles that guide all activities related to AI and processes for handling deviations and exceptions.",
           "oci_mapping": "IAM policies with AI service families (generative-ai-family, data-science-family, ai-service-family) document the AI governance policy. Policy statements define who can access what AI resources.",
-          "checks": ["A2.2-01", "A2.2-02"]
+          "checks": [
+            "A2.2-01",
+            "A2.2-02"
+          ]
         },
         "A.2.3": {
           "topic": "Alignment with other organizational policies",
           "control": "The organization shall determine where other policies can be affected by or apply to, the organization's objectives with respect to AI systems.",
           "implementation_guidance": "Many domains intersect with AI, including quality, security, safety and privacy. The organization should consider a thorough analysis to determine whether and where current policies can necessarily intersect and either update those policies if updates are required or include provisions in the AI policy.",
           "oci_mapping": "AI classification tag namespaces (e.g., AIGovernance, DataClassification) demonstrate policy alignment across organizational domains.",
-          "checks": ["A2.3-01"]
+          "checks": [
+            "A2.3-01"
+          ]
         },
         "A.2.4": {
           "topic": "Review of the AI policy",
@@ -234,14 +293,19 @@
           "control": "Roles and responsibilities for AI shall be defined and allocated according to the needs of the organization.",
           "implementation_guidance": "The organization should consider AI policies, AI objectives and identified risks when assigning roles. Areas requiring defined roles include: risk management, AI impact assessments, asset and resource management, security, safety, privacy, development, performance, human oversight, supplier relationships, legal compliance, and data quality management.",
           "oci_mapping": "Dedicated AI administrator IAM groups (e.g., ai-admins, ml-engineers, data-scientists) with least-privilege policies define AI roles. Group membership tracks responsibility assignment.",
-          "checks": ["A3.2-01", "A3.2-02"]
+          "checks": [
+            "A3.2-01",
+            "A3.2-02"
+          ]
         },
         "A.3.3": {
           "topic": "Reporting of concerns",
           "control": "The organization shall define and put in place a process to report concerns about the organization's role with respect to an AI system throughout its life cycle.",
           "implementation_guidance": "The reporting mechanism should provide confidentiality/anonymity options, be available to all persons, be staffed with qualified persons, and provide response mechanisms within an appropriate time frame.",
           "oci_mapping": "OCI Notifications topics enable concern reporting channels. Events rules with notification actions provide automated escalation.",
-          "checks": ["A3.3-01"]
+          "checks": [
+            "A3.3-01"
+          ]
         }
       }
     },
@@ -254,35 +318,55 @@
           "control": "The organization shall identify and document relevant resources required for the activities at given AI system life cycle stages and other AI-related activities relevant for the organization.",
           "implementation_guidance": "Resources can include AI system components, data resources, tooling resources, system and computing resources, and human resources. Documentation informs AI system impact assessments.",
           "oci_mapping": "Data Labeling Service datasets document AI data resources. Data Science projects document tooling and compute resources. Compartment resource inventories track AI assets.",
-          "checks": ["A4.3-01", "A4.3-02"]
+          "checks": [
+            "A4.3-01",
+            "A4.3-02"
+          ]
         },
         "A.4.3": {
           "topic": "Data resources",
           "control": "As part of resource identification, the organization shall document information about the data resources utilized for the AI system.",
           "implementation_guidance": "Documentation should include provenance, update dates, data categories (training/validation/test/production), process for labelling, intended use, quality, retention policies, known biases, and data preparation methods.",
           "oci_mapping": "Object Storage buckets tagged for AI training data. Data Labeling Service for annotation tracking. Data Safe for data classification and masking.",
-          "checks": ["A4.3-01", "A4.3-02"]
+          "checks": [
+            "A4.3-01",
+            "A4.3-02"
+          ]
         },
         "A.4.4": {
           "topic": "Tooling resources",
           "control": "As part of resource identification, the organization shall document information about the tooling resources utilized for the AI system.",
           "implementation_guidance": "Tooling resources include algorithm types and ML models, data conditioning tools, optimization methods, evaluation methods, provisioning tools, model development tools, and AI system design software/hardware.",
           "oci_mapping": "Data Science projects and notebooks document tooling. Model deployments in Data Science service track AI tooling. GenAI service endpoints document generative AI tools.",
-          "checks": ["A4.4-01"]
+          "checks": [
+            "A4.4-01",
+            "A4.4-02",
+            "A4.4-03",
+            "A4.4-04",
+            "A4.4-05",
+            "A4.4-06",
+            "A4.4-07"
+          ]
         },
         "A.4.5": {
           "topic": "System and computing resources",
           "control": "As part of resource identification, the organization shall document information about the system and computing resources utilized for the AI system.",
           "implementation_guidance": "Information should include resource requirements, location (on-premises/cloud/edge), processing resources (network/storage), and environmental impact of hardware.",
           "oci_mapping": "Compute instances and shapes document AI infrastructure. GPU shapes for AI workloads. OCI AI service quotas and limits.",
-          "checks": ["A4.4-01"]
+          "checks": [
+            "A4.4-01",
+            "A4.5-01",
+            "A4.5-03"
+          ]
         },
         "A.4.6": {
           "topic": "Human resources",
           "control": "As part of resource identification, the organization shall document information about the human resources and their competences utilized for AI system lifecycle activities.",
           "implementation_guidance": "The organization should consider diverse expertise including data scientists, human oversight roles, safety/security/privacy experts, AI researchers, and domain experts.",
           "oci_mapping": "IAM users with API key capability show technical staff. Group memberships map to competence areas. User count and group diversity indicate human resource allocation.",
-          "checks": ["CL7-03"]
+          "checks": [
+            "CL7-03"
+          ]
         }
       }
     },
@@ -295,28 +379,37 @@
           "control": "The organization shall establish a process to assess the potential consequences for individuals or groups of individuals, or both, and societies that can result from the AI system throughout its life cycle.",
           "implementation_guidance": "The organization should consider whether the AI system affects legal position, physical/psychological well-being, universal human rights, and societies. The process should define circumstances for assessment, elements (identification, analysis, evaluation, treatment, documentation), who performs it, and how it can inform design or use.",
           "oci_mapping": "Cloud Guard targets covering AI compartments enable continuous impact monitoring. Audit log retention >= 90 days provides impact assessment documentation.",
-          "checks": ["A5.2-01", "A5.2-02"]
+          "checks": [
+            "A5.2-01",
+            "A5.2-02"
+          ]
         },
         "A.5.3": {
           "topic": "Documentation of AI system impact assessments",
           "control": "The organization shall document the results of AI system impact assessments and retain results for a defined period.",
           "implementation_guidance": "Documentation should include intended use and foreseeable misuse, positive and negative impacts, predictable failures and mitigation measures, relevant demographic groups, system complexity, role of humans in oversight, and employment impact.",
           "oci_mapping": "Audit log retention provides time-bounded evidence storage. Object Storage with versioning retains assessment documents. Compliance scan results serve as periodic assessment records.",
-          "checks": ["A5.3-01"]
+          "checks": [
+            "A5.3-01"
+          ]
         },
         "A.5.4": {
           "topic": "Assessing AI system impact on individuals or groups of individuals",
           "control": "The organization shall assess and document the potential impacts of AI systems to individuals or groups of individuals throughout the system's life cycle.",
           "implementation_guidance": "Consider governance principles, AI policies and objectives. Areas of impact include: fairness, accountability, transparency and explainability, security and privacy, safety and health, financial consequences, accessibility, and human rights.",
           "oci_mapping": "Data Safe user assessments evaluate individual impact. Cloud Guard risk findings for AI resources track security impact.",
-          "checks": ["A5.2-01"]
+          "checks": [
+            "A5.2-01"
+          ]
         },
         "A.5.5": {
           "topic": "Assessing societal impacts of AI systems",
           "control": "The organization shall assess and document the potential societal impacts of their AI systems throughout their life cycle.",
           "implementation_guidance": "Societal impacts include: environmental sustainability, economic impact, government processes, health and safety, norms/traditions/culture/values. The organization should consider both beneficial and detrimental impacts.",
           "oci_mapping": "Cloud Guard comprehensive risk assessment covers broader impact. Compliance framework cross-mapping (EU AI Act, NIST) provides societal impact context.",
-          "checks": ["A5.2-01"]
+          "checks": [
+            "A5.2-01"
+          ]
         }
       }
     },
@@ -330,49 +423,69 @@
           "control": "The organization shall identify and document objectives to guide the responsible development of AI systems, and take those objectives into account and integrate measures to achieve them in the development life cycle.",
           "implementation_guidance": "Objectives should be taken into account in the AI system design and development processes, e.g., if 'fairness' is an objective, it should be incorporated in requirements specification, data acquisition, model training, verification and validation.",
           "oci_mapping": "Data Science project metadata and tags document development objectives. Model deployment configurations enforce development criteria.",
-          "checks": ["A6.2-01"]
+          "checks": [
+            "A6.2-01"
+          ]
         },
         "A.6.1.3": {
           "topic": "Processes for responsible AI system design and development",
           "control": "The organization shall define and document the specific processes for the responsible design and development of the AI system.",
           "implementation_guidance": "Processes should include life cycle stages, testing requirements, human oversight, AI impact assessment stages, training data expectations, expertise requirements, release criteria, approvals, change control, usability, and engagement of interested parties.",
           "oci_mapping": "Resource Manager stacks document IaC deployment processes. Data Science project notebooks capture development processes.",
-          "checks": ["A6.2-01"]
+          "checks": [
+            "A6.2-01"
+          ]
         },
         "A.6.2.2": {
           "topic": "AI system requirements and specification",
           "control": "The organization shall specify and document requirements for new AI systems or material enhancements to existing systems.",
           "implementation_guidance": "The organization should document the rationale for developing the AI system, how the model can be trained, and how data requirements can be achieved.",
           "oci_mapping": "Data Science project descriptions and tags. Model catalog entries with version metadata.",
-          "checks": ["A6.2-01"]
+          "checks": [
+            "A6.2-01"
+          ]
         },
         "A.6.2.5": {
           "topic": "AI system deployment",
           "control": "The organization shall document a deployment plan and ensure that appropriate requirements are met prior to deployment.",
           "implementation_guidance": "Deployment documentation should include infrastructure requirements, monitoring setup, rollback procedures.",
           "oci_mapping": "Resource Manager deployment stacks. Data Science model deployments with endpoint configuration. Container registry (OCIR) for versioned artifacts.",
-          "checks": ["A6.5-01", "A6.5-02"]
+          "checks": [
+            "A6.5-01",
+            "A6.5-02"
+          ]
         },
         "A.6.2.6": {
           "topic": "AI system operation and monitoring",
           "control": "The organization shall define and document the necessary elements for the ongoing operation of the AI system. At the minimum, this should include system and performance monitoring, repairs, updates and support.",
           "implementation_guidance": "Operational documentation should cover monitoring dashboards, alerting thresholds, update procedures, support escalation paths.",
           "oci_mapping": "OCI Monitoring alarms for AI services. APM for application performance. Log Analytics for operational log analysis.",
-          "checks": ["A6.6-01", "A6.6-02"]
+          "checks": [
+            "A6.6-01",
+            "A6.6-02",
+            "A6.2-06",
+            "A6.6-03"
+          ]
         },
         "A.6.2.7": {
           "topic": "AI system technical documentation",
           "control": "The organization shall determine what AI system technical documentation is needed for each relevant category of interested parties, and provide the technical documentation in the appropriate form.",
           "implementation_guidance": "Documentation should cover system architecture, data flows, model descriptions, performance metrics, and limitations.",
           "oci_mapping": "Data Science project documentation. Model catalog with metadata. Compartment tagging for resource classification.",
-          "checks": ["A6.7-01"]
+          "checks": [
+            "A6.7-01"
+          ]
         },
         "A.6.2.8": {
           "topic": "AI system recording of event logs",
           "control": "The organization shall determine at which phases of the AI system life cycle, record keeping of event logs should be enabled, but at the minimum when the AI system is in use.",
           "implementation_guidance": "Event logs should capture system inputs, outputs, decisions, errors, and operational events.",
           "oci_mapping": "OCI Audit service captures API-level events. OCI Logging service for custom AI event logs. Log Analytics for log aggregation and analysis.",
-          "checks": ["A8.4-01", "A8.4-02"]
+          "checks": [
+            "A8.4-01",
+            "A8.4-02",
+            "A6.2-08"
+          ]
         }
       }
     },
@@ -385,35 +498,53 @@
           "control": "The organization shall define, document and implement data management processes related to the development of AI systems.",
           "implementation_guidance": "Data management processes should cover the full data lifecycle from acquisition through retirement.",
           "oci_mapping": "Data Safe for database security governance. Object Storage lifecycle policies for data management. Data Labeling Service for AI data annotation workflows.",
-          "checks": ["A7.2-01", "A7.2-02", "A7.2-03"]
+          "checks": [
+            "A7.2-01",
+            "A7.2-02",
+            "A7.2-03"
+          ]
         },
         "A.7.3": {
           "topic": "Acquisition of data",
           "control": "The organization shall determine and document details about the acquisition and selection of the data used in AI systems.",
           "implementation_guidance": "Documentation should cover data sources, selection criteria, consent mechanisms, and legal basis for data processing.",
           "oci_mapping": "Data Safe data discovery identifies sensitive data sources. Object Storage access logs track data acquisition. Data Catalog documents data lineage.",
-          "checks": ["A7.2-01"]
+          "checks": [
+            "A7.2-01",
+            "A7.3-01"
+          ]
         },
         "A.7.4": {
           "topic": "Quality of data for AI systems",
           "control": "The organization shall define and document requirements for data quality and ensure that data used to develop and operate the AI system meet those requirements.",
           "implementation_guidance": "Quality requirements should cover completeness, accuracy, consistency, timeliness, and relevance of data.",
           "oci_mapping": "Data Safe data quality assessments. Data Labeling Service quality metrics. Object Storage metadata tags for quality tracking.",
-          "checks": ["A7.2-02"]
+          "checks": [
+            "A7.2-02",
+            "A7.4-01"
+          ]
         },
         "A.7.5": {
           "topic": "Data provenance",
           "control": "The organization shall define and document a process for recording the provenance of data used in its AI systems over the life cycles of the data and the AI system.",
           "implementation_guidance": "Provenance documentation should include data origin, transformation history, version tracking, and chain of custody.",
           "oci_mapping": "Object Storage bucket versioning tracks data provenance. KMS Vault with customer-managed keys ensures data integrity. Audit logs provide chain of custody evidence.",
-          "checks": ["A7.5-01", "A7.5-01a"]
+          "checks": [
+            "A7.5-01",
+            "A7.5-01a",
+            "A7.5-01b",
+            "A7.5-02",
+            "A7.5-03"
+          ]
         },
         "A.7.6": {
           "topic": "Data preparation",
           "control": "The organization shall define and document its criteria for selecting data preparations and the data preparation methods to be used.",
           "implementation_guidance": "Data preparation documentation should cover cleaning, transformation, augmentation, and feature engineering methods.",
           "oci_mapping": "Data Science notebooks document data preparation pipelines. Data Flow service for data transformation. Data Integration service for ETL workflows.",
-          "checks": ["A7.2-03"]
+          "checks": [
+            "A7.2-03"
+          ]
         }
       }
     },
@@ -426,28 +557,40 @@
           "control": "The organization shall determine and provide the necessary information to users of the AI system.",
           "implementation_guidance": "User documentation should include system capabilities, limitations, intended use, known risks, and instructions for safe use.",
           "oci_mapping": "Log Analytics dashboards provide system information to users. AI service documentation and model cards. Compliance scan reports for transparency.",
-          "checks": ["A8.4-01"]
+          "checks": [
+            "A8.4-01",
+            "A8.2-01"
+          ]
         },
         "A.8.3": {
           "topic": "External reporting",
           "control": "The organization shall provide capabilities for interested parties to report adverse impacts of the AI system.",
           "implementation_guidance": "Reporting mechanisms should be accessible, responsive, and documented.",
           "oci_mapping": "OCI Notifications for incident reporting. Events service for automated external notifications.",
-          "checks": ["A8.4-01"]
+          "checks": [
+            "A8.4-01"
+          ]
         },
         "A.8.4": {
           "topic": "Communication of incidents",
           "control": "The organization shall determine and document a plan for communicating incidents to users of the AI system.",
           "implementation_guidance": "Incident communication plan should define severity levels, notification timelines, communication channels, and escalation procedures.",
           "oci_mapping": "Audit logs capture incident evidence. OCI Logging for AI service event logs. Log Analytics for incident analysis and reporting.",
-          "checks": ["A8.4-01", "A8.4-02", "A8.4-03", "A8.4-04"]
+          "checks": [
+            "A8.4-01",
+            "A8.4-02",
+            "A8.4-03",
+            "A8.4-04"
+          ]
         },
         "A.8.5": {
           "topic": "Information for interested parties",
           "control": "The organization shall determine and document their obligations to reporting information about the AI system to interested parties.",
           "implementation_guidance": "The organization should determine what information must be disclosed, to whom, and how frequently.",
           "oci_mapping": "Compliance scan reports provide structured information for interested parties. Cross-framework mapping (EU AI Act, NIST) demonstrates regulatory awareness.",
-          "checks": ["A8.4-01"]
+          "checks": [
+            "A8.4-01"
+          ]
         }
       }
     },
@@ -460,21 +603,36 @@
           "control": "The organization shall define and document the processes for the responsible use of AI systems.",
           "implementation_guidance": "Processes should cover acceptable use guidelines, human oversight requirements, monitoring of AI system behaviour, and escalation procedures for unexpected outcomes.",
           "oci_mapping": "IAM policies restrict AI service access to authorized groups. MFA enforcement for AI administrators. Monitoring alarms for AI service usage anomalies.",
-          "checks": ["A9.3-01", "A9.3-02"]
+          "checks": [
+            "A9.3-01",
+            "A9.3-02",
+            "A9.2-01"
+          ]
         },
         "A.9.3": {
           "topic": "Objectives for responsible use of AI system",
           "control": "The organization shall identify and document objectives to guide the responsible use of AI systems.",
           "implementation_guidance": "Objectives should address accuracy, fairness, safety, security, privacy, transparency, and human oversight requirements.",
           "oci_mapping": "Authentication policies (MFA, password strength) enforce access security objectives. IAM group-scoped policies ensure least-privilege for AI resources.",
-          "checks": ["A9.3-01", "A9.3-02", "A9.3-03", "A9.3-04"]
+          "checks": [
+            "A9.3-01",
+            "A9.3-02",
+            "A9.3-03",
+            "A9.3-04",
+            "A9.4-01",
+            "A9.4-02",
+            "A9.4-03",
+            "A9.4-04"
+          ]
         },
         "A.9.4": {
           "topic": "Intended use of the AI system",
           "control": "The organization shall ensure that the AI system is used according to the intended uses of the AI system and its accompanying documentation.",
           "implementation_guidance": "The organization should monitor for misuse and have mechanisms to restrict or terminate improper use.",
           "oci_mapping": "Cloud Guard detections monitor for unauthorized AI service usage. Service log analysis identifies misuse patterns.",
-          "checks": ["A9.3-01"]
+          "checks": [
+            "A9.3-01"
+          ]
         }
       }
     },
@@ -487,21 +645,31 @@
           "control": "The organization shall ensure that responsibilities within their AI system life cycle are allocated between the organization, its partners, suppliers, customers and third parties.",
           "implementation_guidance": "Responsibility allocation should be documented in contracts and agreements, covering development, deployment, monitoring, and decommissioning.",
           "oci_mapping": "Network security groups control third-party network access. VCN peering arrangements document network relationships. IAM federation policies govern third-party identity.",
-          "checks": ["A10.2-01", "A10.2-02"]
+          "checks": [
+            "A10.2-01",
+            "A10.2-02"
+          ]
         },
         "A.10.3": {
           "topic": "Suppliers",
           "control": "The organization shall establish a process to ensure that its usage of services, products or materials provided by suppliers aligns with the organization's approach to the responsible development and use of AI systems.",
           "implementation_guidance": "Supplier assessment should cover AI ethics alignment, data handling practices, security posture, and compliance with applicable regulations.",
           "oci_mapping": "Third-party AI service integrations tracked via IAM policies. OCIR (Container Registry) for supply chain artifact management. Network firewall rules for API gateway controls.",
-          "checks": ["A10.2-01", "A10.3-01"]
+          "checks": [
+            "A10.2-01",
+            "A10.3-01",
+            "A10.3-01b",
+            "A10.3-02"
+          ]
         },
         "A.10.4": {
           "topic": "Customers",
           "control": "The organization shall ensure that its responsible approach to the development and use of AI systems considers their customer expectations and needs.",
           "implementation_guidance": "Customer engagement should include feedback mechanisms, transparency about AI use, and responsiveness to concerns.",
           "oci_mapping": "API Gateway with rate limiting and monitoring. Customer-facing documentation in Object Storage.",
-          "checks": ["A10.2-02"]
+          "checks": [
+            "A10.2-02"
+          ]
         }
       }
     }
